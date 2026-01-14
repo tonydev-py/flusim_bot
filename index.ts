@@ -9,9 +9,6 @@ import "dotenv/config"
 
 /* ================= CONFIG ================= */
 
-const GEMINI_KEY = process.env.GEMINI_KEY
-if (!GEMINI_KEY) throw new Error("GEMINI_KEY não definida")
-
 const logger = P({ level: "info" })
 const usuariosEmUso = new Set<string>()
 
@@ -54,8 +51,6 @@ Respostas devem ser curtas, claras, naturais e humanas.
 Sempre que possível, faça uma pergunta suave para continuar a conversa.
 `
 
-
-
 /* ================= BOT ================= */
 
 async function startBot() {
@@ -84,22 +79,15 @@ async function startBot() {
   sock.ev.on("messages.upsert", async ({ messages }) => {
     const msg = messages[0]
     if (!msg || !msg.message) return
-
-    // Ignorar mensagens antigas
     if (msg.key.id?.startsWith("BAE5")) return
-
-    // Ignorar mensagens do próprio bot
     if (msg.key.fromMe) return
 
     const from = msg.key.remoteJid!
-    
-    // Ignorar grupos
     if (from.endsWith("@g.us")) return
 
     const text = extrairTexto(msg)
     if (!text) return
 
-    // Anti-spam
     if (usuariosEmUso.has(from)) return
     usuariosEmUso.add(from)
 
@@ -133,6 +121,13 @@ async function startBot() {
 /* ================= IA ================= */
 
 async function respostaIA(pergunta: string): Promise<string> {
+  const GEMINI_KEY = process.env.GEMINI_KEY
+
+  if (!GEMINI_KEY) {
+    logger.error("GEMINI_KEY não definida no runtime")
+    return "Serviço temporariamente indisponível 😕"
+  }
+
   try {
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GEMINI_KEY}`,
@@ -172,9 +167,7 @@ function extrairTexto(msg: WAMessage): string {
 }
 
 function ajustarResposta(texto: string): string {
-  return texto
-    .replace(/\n{2,}/g, "\n")
-    .trim()
+  return texto.replace(/\n{2,}/g, "\n").trim()
 }
 
 function dividirMensagem(texto: string, limite = 600): string[] {
@@ -189,3 +182,5 @@ function delayHumano(): Promise<void> {
 /* ================= START ================= */
 
 startBot()
+
+
