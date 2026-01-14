@@ -1,0 +1,16 @@
+{
+  "name": "flusim-bot",
+  "type": "module",
+  "scripts": {
+    "start": "tsx index.ts"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.4.0",
+    "pino": "^8.17.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0"
+  }
+}
